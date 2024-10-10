@@ -1,0 +1,145 @@
+
+const asyncHandler = require('express-async-handler');
+const AttendanceModel = require('../models/AttendanceModel');
+const EmployeeModel = require('../models/EmployeeModel');
+
+// Helper function to extract just the date (YYYY-MM-DD)
+const extractDate = (dateTime) => {
+  if (!dateTime) {
+    // If dateTime is empty, return today's date with the current time
+    const now = new Date();
+    return now.toISOString().split('T')[0]; // Return the date in YYYY-MM-DD format
+  }
+  return new Date(dateTime).toISOString().split('T')[0]; // Return formatted date if dateTime is provided
+};
+// Check-in Controller
+const checkin = asyncHandler(async (req, res) => {
+  try {
+    const { empId, setTime } = req.body;
+    const checkinTime = new Date(setTime);
+    const checkinDate = extractDate(checkinTime);
+
+    // Find if there's already an attendance entry for this employee on the same date
+    let attendance = await AttendanceModel.findOne({
+      empId,
+      date: checkinDate
+    });
+
+    if (attendance) {
+      // If the attendance entry exists, add the check-in time to the timeLogs array
+      attendance.timeLogs.push({ checkIn: checkinTime });
+    } else {
+      // If no entry exists, create a new attendance record with check-in time
+      attendance = new AttendanceModel({
+        empId: empId,
+        date: checkinDate,
+        timeLogs: [{ checkIn: checkinTime }],
+      });
+    }
+
+    // Save or update the attendance record
+    const savedAttendance = await attendance.save();
+
+    // Update the employee's attendanceTime array
+    await EmployeeModel.findByIdAndUpdate(
+      empId,
+      { $addToSet: { attendanceTime: savedAttendance._id }, check: 1 }, // Using $addToSet to prevent duplicate entries
+      { new: true }
+    );
+
+    res.status(200).json({
+      message: 'Check-in successful',
+      attendance: savedAttendance
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: 'Failed to check in',
+      error: err.message
+    });
+  }
+});
+
+const checkout = asyncHandler(async (req, res) => {
+  try {
+    const { empId, setTime } = req.body;
+    const checkoutTime = new Date(setTime);
+    const checkoutDate = extractDate(checkoutTime); // Ensure this function returns YYYY-MM-DD format
+
+    // Find if there's already an attendance entry for this employee on the same date
+    let attendance = await AttendanceModel.findOne({
+      empId,
+      date: checkoutDate
+    });
+
+    // Initialize formattedTotalHours
+    let formattedTotalHours = "0 hours 0 minutes"; // Default value
+
+    if (attendance) {
+      // If the attendance entry exists, add the check-out time to the last log
+      const lastLog = attendance.timeLogs[attendance.timeLogs.length - 1];
+
+      if (lastLog && lastLog.checkIn && !lastLog.checkOut) {
+        // Update existing check-in log with check-out time
+        lastLog.checkOut = checkoutTime;
+      } else {
+        // If no matching log or all are checked out, create a new log
+        attendance.timeLogs.push({ checkIn: null, checkOut: checkoutTime });
+      }
+
+      // Calculate total working hours
+      let totalHours = 0;
+
+      // Calculate total hours worked from timeLogs
+      for (const log of attendance.timeLogs) {
+        if (log.checkIn && log.checkOut) {
+          const checkInDate = new Date(log.checkIn);
+          const checkOutDate = new Date(log.checkOut);
+          totalHours += (checkOutDate - checkInDate) / (1000 * 60 * 60); // Convert ms to hours
+        }
+      }
+
+      attendance.totalHours = totalHours; // Update total hours
+
+      // Convert total hours into hours and minutes only if totalHours > 0
+      if (totalHours > 0) {
+        const hours = Math.floor(totalHours); // Whole hours
+        const minutes = Math.round((totalHours - hours) * 60); // Convert decimal to minutes
+        formattedTotalHours = `${hours} hours ${minutes} minutes`; // Format as required
+        attendance.formattedTotalHours = formattedTotalHours; // Store formatted time in attendance
+      }
+      
+    } else {
+      // If no entry exists, create a new attendance record with check-out time
+      attendance = new AttendanceModel({
+        empId,
+        date: checkoutDate,
+        timeLogs: [{ checkIn: null, checkOut: checkoutTime }],
+        totalHours: 0 // Initialize total hours
+      });
+    }
+
+    // Save or update the attendance record
+    const savedAttendance = await attendance.save();
+
+    // Update the employee's attendanceTime array
+    await EmployeeModel.findByIdAndUpdate(
+      empId,
+      { $addToSet: { attendanceTime: savedAttendance._id }, check: 0 }, // Reset check to 0 on checkout
+      { new: true }
+    );
+
+    res.status(200).json({
+      message: 'Check-out successful',
+      attendance: savedAttendance,
+      formattedTotalHours // Send formatted hours and minutes (will always have a value)
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: 'Failed to check out',
+      error: err.message
+    });
+  }
+});
+
+
+module.exports = { checkin,checkout };
