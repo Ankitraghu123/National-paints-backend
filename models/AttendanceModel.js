@@ -7,7 +7,7 @@ const AttendanceSchema = new mongoose.Schema({
     required: true
   },
   date: {
-    type: String, // Store date in YYYY-MM-DD format
+    type: String, 
     required: true
   },
   timeLogs: [
@@ -23,7 +23,12 @@ const AttendanceSchema = new mongoose.Schema({
   totalHours: {
     type: Number, // Store total working hours for the day
     default: 0
-  }
+  },
+  totalSalary:{
+    type:Number,
+    default:0,
+  },
+  sqlId:String
 }, {
   timestamps: true
 });

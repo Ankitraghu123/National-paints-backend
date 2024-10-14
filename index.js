@@ -9,6 +9,7 @@ const cors = require('cors')
 
 const employeeRouter = require('./routes/EmployeeRoutes')
 const AttendanceRouter = require('./routes/AttendanceRoutes')
+const HolidayRouter = require('./routes/HolidayRoutes')
 
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
@@ -23,6 +24,8 @@ app.use(cookieParser())
 
 app.use('/api/employee',employeeRouter)
 app.use('/api/attendance',AttendanceRouter)
+app.use('/api/holiday',HolidayRouter)
+
 
 app.use(notFound)
 app.use(errorHandler)

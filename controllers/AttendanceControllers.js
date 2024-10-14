@@ -16,8 +16,18 @@ const extractDate = (dateTime) => {
 const checkin = asyncHandler(async (req, res) => {
   try {
     const { empId, setTime } = req.body;
-    const checkinTime = new Date(setTime);
-    const checkinDate = extractDate(checkinTime);
+    let checkinTime = new Date(setTime); // Parse the check-in time
+    const checkinDate = extractDate(checkinTime); // Extract the date without time
+
+    // Define the cutoff time as 10:00 AM
+    const cutoffTime = new Date(checkinTime);
+    cutoffTime.setHours(10, 0, 0, 0); // Set the time to 10:00 AM for that day
+
+    // If the check-in time is earlier than 10:00 AM, set it to 10:00 AM
+    if (checkinTime < cutoffTime) {
+      console.log(checkinTime)
+      checkinTime = cutoffTime;
+    }
 
     // Find if there's already an attendance entry for this employee on the same date
     let attendance = await AttendanceModel.findOne({
