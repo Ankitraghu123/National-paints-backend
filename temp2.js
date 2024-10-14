@@ -142,59 +142,59 @@ const labourAttendanceData = [
   
 
 const migrateAttendanceData = async () => {
-  try {
-      for (let attendance of labourAttendanceData) {
-          // Find the employee by SQL id
-          const employee = await EmployeeModel.findOne({ sqlId: attendance.emp_id });
+    try {
+        for (let attendance of labourAttendanceData) {
+            // Find the employee by SQL id
+            const employee = await EmployeeModel.findOne({ sqlId: attendance.emp_id });
 
-          if (employee) {
-              // Create a new attendance record
-              const checkInTime = new Date(`${attendance.date}T${attendance.check_in}`); // assuming attendance.date is in 'YYYY-MM-DD' format
-              const checkOutTime = new Date(`${attendance.date}T${attendance.check_out}`);
+            if (employee) {
+                // Create a new attendance record
+                const checkInTime = new Date(`${attendance.date}T${attendance.check_in}`); // assuming attendance.date is in 'YYYY-MM-DD' format
+                const checkOutTime = new Date(`${attendance.date}T${attendance.check_out}`);
 
-              // If check-out time is from the previous day (after adjusting for time zone)
-              if (checkOutTime < checkInTime) {
-                  // Adjust checkOutTime to the next day
-                  checkOutTime.setDate(checkOutTime.getDate() + 1);
-              }
+                // If check-out time is from the previous day (after adjusting for time zone)
+                if (checkOutTime < checkInTime) {
+                    // Adjust checkOutTime to the next day
+                    checkOutTime.setDate(checkOutTime.getDate() + 1);
+                }
 
-              const thresholdTime = new Date(checkInTime);
-              thresholdTime.setHours(10, 0, 0, 0); // Set to 10:00 AM
+                const thresholdTime = new Date(checkInTime);
+                thresholdTime.setHours(10, 0, 0, 0); // Set to 10:00 AM
 
-              // If checkInTime is before 10:00 AM and not equal to checkOutTime
-              if (checkInTime < thresholdTime && checkInTime.getTime() !== checkOutTime.getTime()) {
-                  checkInTime.setHours(10, 0, 0); // Set to 10:00 AM
-              }
+                // If checkInTime is before 10:00 AM and not equal to checkOutTime
+                if (checkInTime < thresholdTime && checkInTime.getTime() !== checkOutTime.getTime()) {
+                    checkInTime.setHours(10, 0, 0); // Set to 10:00 AM
+                }
 
-              // Calculate total hours
-              const totalHours = (checkInTime.getTime() === checkOutTime.getTime()) ? 0 : (checkOutTime - checkInTime) / (1000 * 60 * 60); // Convert milliseconds to hours
+                // Calculate total hours
+                const totalHours = (checkInTime.getTime() === checkOutTime.getTime()) ? 0 : (checkOutTime - checkInTime) / (1000 * 60 * 60); // Convert milliseconds to hours
 
-              const newAttendance = new AttendanceModel({
-                  empId: employee._id,
-                  date: attendance.date,
-                  timeLogs: [{ checkIn: checkInTime, checkOut: checkOutTime }],
-                  totalHours: totalHours,
-                  sqlId: attendance.id // Optional to keep track of SQL ID
-              });
+                const newAttendance = new AttendanceModel({
+                    empId: employee._id,
+                    date: attendance.date,
+                    timeLogs: [{ checkIn: checkInTime, checkOut: checkOutTime }],
+                    totalHours: totalHours,
+                    sqlId: attendance.id // Optional to keep track of SQL ID
+                });
 
-              await newAttendance.save();
+                await newAttendance.save();
 
-              // Push the new attendance ID to the employee's attendanceTime array
-              employee.attendanceTime.push(newAttendance._id);
-              await employee.save(); // Save the updated employee document
+                // Push the new attendance ID to the employee's attendanceTime array
+                employee.attendanceTime.push(newAttendance._id);
+                await employee.save(); // Save the updated employee document
 
-              console.log(`Added attendance for ${employee.name} on ${attendance.date}`);
-          } else {
-              console.log(`Employee with sqlId ${attendance.emp_id} not found.`);
-          }
-      }
+                console.log(`Added attendance for ${employee.name} on ${attendance.date}`);
+            } else {
+                console.log(`Employee with sqlId ${attendance.emp_id} not found.`);
+            }
+        }
 
-      console.log('Attendance data migration complete');
-      mongoose.connection.close();
-  } catch (error) {
-      console.error('Error during migration:', error);
-      mongoose.connection.close();
-  }
+        console.log('Attendance data migration complete');
+        mongoose.connection.close();
+    } catch (error) {
+        console.error('Error during migration:', error);
+        mongoose.connection.close();
+    }
 };
 
 

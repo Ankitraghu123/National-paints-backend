@@ -1,5 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const EmployeeModel = require('../models/EmployeeModel');
+const AttendanceModel = require('../models/AttendanceModel');
 
 const addEmployee = asyncHandler(async (req, res) => {
     try {
@@ -22,8 +23,30 @@ const getAllEmployee = asyncHandler(async (req, res) => {
     }
 });
 
+const getEmployeeAttendance = async (req, res) => {
+    try {
+      const { employeeId, month } = req.params;
+  
+      // Find the employee and populate the attendance records
+      const attendanceRecords = await AttendanceModel.find({ empId: employeeId });
+  
+      // Filter attendance records for the selected month
+      const filteredRecords = attendanceRecords.filter(record => {
+        const recordDate = new Date(record.date);
+        return recordDate.getFullYear() === new Date(month).getFullYear() && 
+               recordDate.getMonth() === new Date(month).getMonth();
+      });
+  
+      res.status(200).json(filteredRecords);
+    } catch (error) {
+      console.error("Error fetching attendance records:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+
 
 module.exports = {
     addEmployee,
-    getAllEmployee
+    getAllEmployee,
+    getEmployeeAttendance
 };
