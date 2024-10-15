@@ -18,6 +18,8 @@ const Register = asyncHandler( async(req,res)=>{
 
  const Login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
+
+    console.log(req.body)
   
     if (!email || !password) {
       res.status(400);

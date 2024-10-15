@@ -6,6 +6,9 @@ const HolidaySchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  name:{
+    type:String
+  },
   isPaid: {
     type: Boolean,
     default: true 
