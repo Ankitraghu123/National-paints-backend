@@ -16,6 +16,8 @@ const extractDate = (dateTime) => {
 const checkin = asyncHandler(async (req, res) => {
   try {
     const { empId, setTime } = req.body;
+    // console.log(setTime)
+    // console.log(setTime)
     let checkinTime = new Date(setTime); // Parse the check-in time
     const checkinDate = extractDate(checkinTime); // Extract the date without time
 
@@ -88,7 +90,7 @@ const checkout = asyncHandler(async (req, res) => {
       // Update the last log's checkout time if check-in exists and checkout is missing
       if (lastLog && lastLog.checkIn && !lastLog.checkOut) {
         lastLog.checkOut = checkoutTime;
-        console.log("Updated check-out time:", lastLog.checkOut); // Debugging
+        // console.log("Updated check-out time:", lastLog.checkOut); // Debugging
       } else {
         // If no matching log, create a new check-out log
         attendance.timeLogs.push({ checkIn: null, checkOut: checkoutTime });
@@ -101,7 +103,10 @@ const checkout = asyncHandler(async (req, res) => {
         if (log.checkIn && log.checkOut) {
           const checkInDate = new Date(log.checkIn);
           const checkOutDate = new Date(log.checkOut);
+          console.log(checkInDate,checkOutDate)
+          
           totalHours += (checkOutDate - checkInDate) / (1000 * 60 * 60); // Convert ms to hours
+          console.log("total hours" , totalHours)
         }
       }
 
