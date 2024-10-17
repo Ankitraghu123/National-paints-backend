@@ -3,10 +3,31 @@ const { type } = require('os');
 
 const EmployeeSchema = new mongoose.Schema({
   name:String,
+  Dob:Date,
+  location:String,
+  totalExp:Number,
+  previousEmployer:String,
+  bankAccountNumber:Number,
+  ifscCode:String,
+  bankBranch:String,
+  mobileNumber:Number,
+  alternateNumber:Number,
+  City:String,
+  pinCode:String,
+  currentAddress:String,
+  permanentAddress:String,
+  email:String,
+  panNumber:String,
+  maritalStatus:String,
+  bloodGroup:String,
+  qualification:String,
+  fathersName:String,
   salary:Number,
+  joininDate:Date,
+  // departMent:String,
   empType:{
     type:String,
-    enum:['pandit','staff','labour']
+    enum:['staff','labour','sales','pandit']
   },
   attendanceTime:[{
     type:mongoose.Schema.Types.ObjectId,
@@ -18,7 +39,6 @@ const EmployeeSchema = new mongoose.Schema({
   },
   personId: { 
     type: Number,
-    required: true
   },
   status: {
     type: String,

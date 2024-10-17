@@ -86,7 +86,20 @@ const checkout = asyncHandler(async (req, res) => {
       for (const log of attendance.timeLogs) {
         if (log.checkIn && log.checkOut) {
           const checkInDate = new Date(log.checkIn);
-          const checkOutDate = new Date(log.checkOut);
+          let checkOutDate = new Date(log.checkOut);
+
+          const sixThirtyPM = new Date(checkInDate);
+          sixThirtyPM.setHours(18, 30, 0, 0); // Set to 6:30 PM
+
+          const sevenPM = new Date(checkInDate);
+          sevenPM.setHours(19, 0, 0, 0);
+
+          console.log(checkOutDate,sixThirtyPM)
+
+          // If last checkout time is between 6:30 PM and 7:00 PM, use 6:30 PM
+          if (checkOutDate >= sixThirtyPM && checkOutDate < sevenPM) {
+            checkOutDate = sixThirtyPM;
+          }
           
           totalHours += (checkOutDate - checkInDate) / (1000 * 60 * 60); // Convert ms to hours
         }
@@ -135,6 +148,8 @@ const todaysPresent = asyncHandler(async (req, res) => {
       date: today, 
       'timeLogs.checkIn': { $exists: true, $ne: null }
     }).populate('empId'); 
+
+    console.log(presentRecords)
 
     // Map to get only the employee data
     const presentEmployees = presentRecords.map(record => ({
