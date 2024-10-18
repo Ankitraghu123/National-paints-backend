@@ -60,26 +60,89 @@ const labourData = [
   // { id: 47, person_id: 0, name: 'DEVNARAYAN SINGH/PAWAN', salary: 10000, status: 'Active' },
   // { id: 48, person_id: 0, name: 'SONU SHAKYA (NEW)', salary: 10000, status: 'Active' },
   { id: 49, person_id: 0, name: 'BELVAN', salary: 7000, status: 'Active' },
+ 
+
 ];
+
+const staffData = [
+  
+{ id: 50, person_id: 0, name: 'PANKAJ SEHGAL', salary: 25170, status: 'Active' },
+{ id: 51, person_id: 0, name: 'RAKESH RAJPUT', salary: 24900, status: 'Active' },
+{ id: 52, person_id: 0, name: 'RAMESH GAUR', salary: 15000, status: 'Active' },
+{ id: 53, person_id: 0, name: 'SANJAY SHARMA', salary: 14850, status: 'Active' },
+{ id: 54, person_id: 0, name: 'MATHURA PRASAD MISHRA', salary: 18000, status: 'Active' },
+{ id: 55, person_id: 0, name: 'MINI JOY', salary: 26500, status: 'Active' },
+{ id: 56, person_id: 0, name: 'MOHD WASIM AKTHAR', salary: 15000, status: 'Active' },
+{ id: 57, person_id: 0, name: 'MOHIT GOYAL', salary: 32000, status: 'Active' },
+{ id: 58, person_id: 0, name: 'VIVEK GAUR', salary: 18000, status: 'Active' },
+{ id: 59, person_id: 0, name: 'PRASHANT SHARMA', salary: 16000, status: 'Active' },
+{ id: 60, person_id: 0, name: 'ARUN RAMACHANDRAN', salary: 30000, status: 'Active' },
+{ id: 61, person_id: 0, name: 'ANJALI PARASHAR', salary: 12000, status: 'Active' },
+{ id: 62, person_id: 0, name: 'HIMANSHU UPADHYAY', salary: 20000, status: 'Active' },
+{ id: 63, person_id: 0, name: 'AJAY PANDIT JI', salary: 19400, status: 'Active' },
+{ id: 64, person_id: 0, name: 'HARIOM PANDIT', salary: 23045, status: 'Active' },
+{ id: 65, person_id: 0, name: 'GANESH PANDIT', salary: 12500, status: 'Active' },
+{ id: 66, person_id: 0, name: 'ANIL UPADHYAY PT.JI', salary: 12500, status: 'Active' },
+{ id: 67, person_id: 0, name: 'DEEPAK GAUTAM PTJI', salary: 12500, status: 'Active' }
+
+]
+
+const salesData = [
+{ id: 68, person_id: 0, name: 'ASHISH SHRIVASTAVA', salary: 29500, status: 'Active' },
+{ id: 69, person_id: 0, name: 'SANJAY SAHU', salary: 41500, status: 'Active' },
+{ id: 70, person_id: 0, name: 'RAVINDRA SONI', salary: 20000, status: 'Active' },
+{ id: 71, person_id: 0, name: 'PRADEEP KUSHWAHA', salary: 15000, status: 'Active' },
+{ id: 72, person_id: 0, name: 'DEEPAK YADAV', salary: 18000, status: 'Active' },
+{ id: 73, person_id: 0, name: 'VIJENDRA KUMAR', salary: 14000, status: 'Active' },
+{ id: 74, person_id: 0, name: 'SATISH SONWANE', salary: 15000, status: 'Active' },
+{ id: 75, person_id: 0, name: 'SANJEEV MEHTA', salary: 30000, status: 'Active' },
+{ id: 76, person_id: 0, name: 'HIMANSHU BAHE', salary: 52000, status: 'Active' },
+{ id: 77, person_id: 0, name: 'AWDESH GUPTA', salary: 100000, status: 'Active' },
+{ id: 78, person_id: 0, name: 'SANJEEV ASTHANA', salary: 27500, status: 'Active' },
+]
 
 
 // Function to migrate data
 const migrateData = async () => {
   try {
-    for (let labour of labourData) {
-      const newEmployee = new EmployeeModel({
-        name: labour.name,
-        salary: labour.salary,
-        personId: labour.person_id,
-        status: labour.status,
-        empType: 'labour', // Assuming all are labour
-        sqlId:labour.id
-      });
+    // for (let labour of labourData) {
+    //   const newEmployee = new EmployeeModel({
+    //     name: labour.name,
+    //     salary: labour.salary,
+    //     personId: labour.person_id,
+    //     status: labour.status,
+    //     empType: 'labour', // Assuming all are labour
+    //     sqlId:labour.id
+    //   });
+    //   await newEmployee.save();
+    //     console.log(`Added ${labour.name}`);
+    // }
 
+    //   for (let staff of staffData) {
+    //     const newEmployee = new EmployeeModel({
+    //       name: staff.name,
+    //       salary: staff.salary,
+    //       personId: staff.person_id,
+    //       status: staff.status,
+    //       empType: 'staff', // Assuming all are labour
+    //       sqlId:staff.id
+    //     });
+    //   await newEmployee.save();
+    //   console.log(`Added ${staff.name}`);
+    // }
+
+      for (let sales of salesData) {
+        const newEmployee = new EmployeeModel({
+          name: sales.name,
+          salary: sales.salary,
+          personId: sales.person_id,
+          status: sales.status,
+          empType: 'sales', // Assuming all are labour
+          sqlId:sales.id
+        });
       await newEmployee.save();
-      console.log(`Added ${labour.name}`);
-    }
-
+      console.log(`Added ${sales.name}`);
+      }
     console.log('Data migration complete');
     mongoose.connection.close();
   } catch (error) {
