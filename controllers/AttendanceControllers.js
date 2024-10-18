@@ -3,6 +3,7 @@ const asyncHandler = require('express-async-handler');
 const AttendanceModel = require('../models/AttendanceModel');
 const EmployeeModel = require('../models/EmployeeModel');
 const moment = require('moment');
+// const { zonedTimeToUtc } = require('date-fns-tz');
 
 const extractDate = (dateTime) => {
   if (!dateTime) {
@@ -15,19 +16,23 @@ const extractDate = (dateTime) => {
 const checkin = asyncHandler(async (req, res) => {
   try {
     const { empId, setTime } = req.body;
-
+    const localOffset = 5.5 * 60 * 60 * 1000
     console.log(setTime)
   
     let checkinTime = new Date(setTime); // Parse the check-in time
     const checkinDate = extractDate(checkinTime); // Extract the date without time
-    console.log("beforecheckinTime",checkinTime)
     
     // Define the cutoff time as 10:00 AM
-    const cutoffTime = new Date(checkinTime);
-    cutoffTime.setHours(10, 0, 0, 0); // Set the time to 10:00 AM for that day
+    let cutoffTime = new Date(checkinTime);
+    cutoffTime.setHours(10, 0, 0, 0); 
+
+    cutoffTime = new Date(cutoffTime.getTime() - localOffset);
+
+    console.log("cutoffTimebefore" , cutoffTime)
+    console.log("checkinTime" , checkinTime)
+
     if (checkinTime < cutoffTime) {
-      console.log("checkinTime",checkinTime)
-      console.log("checkoutTime",cutoffTime)
+      console.log("cutoffTime" , cutoffTime)
       checkinTime = cutoffTime;
     }
     let attendance = await AttendanceModel.findOne({
@@ -46,7 +51,6 @@ const checkin = asyncHandler(async (req, res) => {
     }
 
     const savedAttendance = await attendance.save();
-    console.log(savedAttendance)
 
     await EmployeeModel.findByIdAndUpdate(
       empId,
