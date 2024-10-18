@@ -20,13 +20,14 @@ const checkin = asyncHandler(async (req, res) => {
   
     let checkinTime = new Date(setTime); // Parse the check-in time
     const checkinDate = extractDate(checkinTime); // Extract the date without time
-
+    console.log("beforecheckinTime",checkinTime)
+    
     // Define the cutoff time as 10:00 AM
     const cutoffTime = new Date(checkinTime);
     cutoffTime.setHours(10, 0, 0, 0); // Set the time to 10:00 AM for that day
     if (checkinTime < cutoffTime) {
-      console.log(checkinTime)
-      console.log(cutoffTime)
+      console.log("checkinTime",checkinTime)
+      console.log("checkoutTime",cutoffTime)
       checkinTime = cutoffTime;
     }
     let attendance = await AttendanceModel.findOne({
@@ -45,6 +46,7 @@ const checkin = asyncHandler(async (req, res) => {
     }
 
     const savedAttendance = await attendance.save();
+    console.log(savedAttendance)
 
     await EmployeeModel.findByIdAndUpdate(
       empId,
