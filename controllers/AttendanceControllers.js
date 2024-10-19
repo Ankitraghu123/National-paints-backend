@@ -3,6 +3,7 @@ const asyncHandler = require('express-async-handler');
 const AttendanceModel = require('../models/AttendanceModel');
 const EmployeeModel = require('../models/EmployeeModel');
 const moment = require('moment');
+const UnPaidEmployeeModel = require('../models/UnPaidEmployeeModel');
 // const { zonedTimeToUtc } = require('date-fns-tz');
 
 const extractDate = (dateTime) => {
@@ -52,11 +53,26 @@ const checkin = asyncHandler(async (req, res) => {
 
     const savedAttendance = await attendance.save();
 
-    await EmployeeModel.findByIdAndUpdate(
+    const employeeUpdate = await EmployeeModel.findByIdAndUpdate(
       empId,
       { $addToSet: { attendanceTime: savedAttendance._id }, check: 1 }, 
       { new: true }
     );
+
+    // If employee not found in EmployeeModel, check UnPaidEmployeeModel
+    if (!employeeUpdate) {
+      const unpaidEmployeeUpdate = await UnPaidEmployeeModel.findByIdAndUpdate(
+        empId,
+        { $addToSet: { attendanceTime: savedAttendance._id },check: 1 },
+        { new: true }
+      );
+
+      if (!unpaidEmployeeUpdate) {
+        return res.status(404).json({
+          message: 'Employee not found in both Employee and UnPaidEmployee models'
+        });
+      }
+    }
 
     res.status(200).json({
       message: 'Check-in successful',
@@ -126,13 +142,26 @@ const checkout = asyncHandler(async (req, res) => {
     }
 
     const savedAttendance = await attendance.save();
-    console.log("Saved attendance:", savedAttendance); // Debugging
-
-    await EmployeeModel.findByIdAndUpdate(
+    const employeeUpdate = await EmployeeModel.findByIdAndUpdate(
       empId,
-      { $addToSet: { attendanceTime: savedAttendance._id }, check: 0 },  // Reset 'check' to 0 on checkout
+      { $addToSet: { attendanceTime: savedAttendance._id }, check: 0 }, 
       { new: true }
     );
+
+    // If employee not found in EmployeeModel, check UnPaidEmployeeModel
+    if (!employeeUpdate) {
+      const unpaidEmployeeUpdate = await UnPaidEmployeeModel.findByIdAndUpdate(
+        empId,
+        { $addToSet: { attendanceTime: savedAttendance._id },check: 0 },
+        { new: true }
+      );
+
+      if (!unpaidEmployeeUpdate) {
+        return res.status(404).json({
+          message: 'Employee not found in both Employee and UnPaidEmployee models'
+        });
+      }
+    }
 
     res.status(200).json({
       message: 'Check-out successful',

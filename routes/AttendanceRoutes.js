@@ -1,5 +1,6 @@
 const express = require('express');
 const { checkin,checkout, getAttendance, getMonthlyAttendance, todaysPresent, todaysAbsent, todaysAvailable } = require('../controllers/AttendanceControllers');
+const { isReceptionist } = require('../middlewares/authMiddlewares');
 const router = express.Router();
 
 

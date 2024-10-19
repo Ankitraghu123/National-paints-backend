@@ -1,16 +1,152 @@
 const asyncHandler = require('express-async-handler');
 const EmployeeModel = require('../models/EmployeeModel');
 const AttendanceModel = require('../models/AttendanceModel');
+const UnPaidEmployeeModel = require('../models/UnPaidEmployeeModel');
 
 const addEmployee = asyncHandler(async (req, res) => {
     try {
-        const newEmployee = await EmployeeModel.create(req.body);
+        const newEmployee = await UnPaidEmployeeModel.create(req.body);
         res.status(201).json(newEmployee);
     } catch (err) {
         res.status(500).json({ message: 'Failed to add employee', error: err.message });
     }
 });
 
+const unpaidEmployees = asyncHandler(async (req, res) => {
+    try {
+        // Add the filter for approvedEmp: true
+        const allEmployee = await UnPaidEmployeeModel.find({ approvedEmp: true })
+            .populate('attendanceTime');
+
+        res.status(201).json(allEmployee);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to fetch employees', error: err.message });
+    }
+});
+
+const unapprovedEmployees = asyncHandler(async (req, res) => {
+    try {
+        // Add the filter for approvedEmp: false
+        const unapprovedEmployee = await UnPaidEmployeeModel.find({ approvedEmp: false })
+            .populate('attendanceTime');
+
+        res.status(200).json(unapprovedEmployee);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to fetch unapproved employees', error: err.message });
+    }
+});
+
+const approveEmployee = asyncHandler(async (req, res) => {
+    try {
+        const { id } = req.params; // Get employee ID from the request parameters
+
+        // Find the employee by ID and update the approvedEmp field to true
+        const employee = await UnPaidEmployeeModel.findByIdAndUpdate(
+            id,
+            { approvedEmp: true },
+            { new: true } // Return the updated employee document
+        );
+
+        if (!employee) {
+            return res.status(404).json({ message: 'Employee not found' });
+        }
+
+        res.status(200).json({
+            message: 'Employee approved successfully',
+            employee
+        });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to approve employee', error: err.message });
+    }
+});
+
+const editEmployee = asyncHandler(async (req, res) => {
+    try {
+        const { id } = req.params; // Get the employee ID from the request parameters
+
+        // Use req.body directly to update the employee
+        const employee = await UnPaidEmployeeModel.findByIdAndUpdate(
+            id,
+            req.body, // Update with all fields provided in the request body
+            { new: true, runValidators: true } // Return the updated employee and run validators
+        );
+
+        // If employee is not found
+        if (!employee) {
+            return res.status(404).json({ message: 'Employee not found' });
+        }
+
+        // Return success response
+        res.status(200).json({
+            message: 'Employee updated successfully',
+            employee
+        });
+    } catch (err) {
+        // Catch any error and return a server error response
+        res.status(500).json({ message: 'Failed to update employee', error: err.message });
+    }
+});
+
+
+const transferToPaidEmployee = asyncHandler(async (req, res) => {
+    try {
+        const {id}  = req.params; // Get the unpaid employee ID from request parameters
+        // console.log(req.body)
+        // Find the unpaid employee by ID
+        const unpaidEmployee = await UnPaidEmployeeModel.findById(id);
+
+        // Check if the unpaid employee exists
+        if (!unpaidEmployee) {
+            return res.status(404).json({ message: 'Unpaid employee not found' });
+        }
+
+        // Create a new employee in EmployeeModel with the details from UnPaidEmployeeModel
+        const newEmployee = new EmployeeModel({
+            name: unpaidEmployee.name,
+            Dob: unpaidEmployee.Dob,
+            location: unpaidEmployee.location,
+            totalExp: unpaidEmployee.totalExp,
+            previousEmployer: unpaidEmployee.previousEmployer,
+            bankAccountNumber: unpaidEmployee.bankAccountNumber,
+            ifscCode: unpaidEmployee.ifscCode,
+            bankBranch: unpaidEmployee.bankBranch,
+            mobileNumber: unpaidEmployee.mobileNumber,
+            alternateNumber: unpaidEmployee.alternateNumber,
+            City: unpaidEmployee.City,
+            pinCode: unpaidEmployee.pinCode,
+            currentAddress: unpaidEmployee.currentAddress,
+            permanentAddress: unpaidEmployee.permanentAddress,
+            email: unpaidEmployee.email,
+            panNumber: unpaidEmployee.panNumber,
+            maritalStatus: unpaidEmployee.maritalStatus,
+            bloodGroup: unpaidEmployee.bloodGroup,
+            qualification: unpaidEmployee.qualification,
+            fathersName: unpaidEmployee.fathersName,
+            salary: unpaidEmployee.salary,
+            RegisterationDate: unpaidEmployee.RegisterationDate,
+            joininDate: unpaidEmployee.joininDate,
+            designation: unpaidEmployee.designation,
+            empType: unpaidEmployee.empType,
+            personId: unpaidEmployee.personId,
+            status: unpaidEmployee.status,
+            sqlId: unpaidEmployee.sqlId,
+            attendanceTime: [], // Set attendanceTime as empty initially
+        });
+
+        // Save the new employee
+        await newEmployee.save();
+
+        // Optionally, remove the unpaid employee from the UnPaidEmployeeModel
+        await UnPaidEmployeeModel.findByIdAndDelete(id);
+
+        res.status(201).json({
+            message: 'Employee successfully transferred to the paid employee list',
+            newEmployee
+        });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to transfer employee', error: err.message });
+    }
+});
 
 const getAllEmployee = asyncHandler(async (req, res) => {
     try {
@@ -47,5 +183,11 @@ const getEmployeeAttendance = async (req, res) => {
 module.exports = {
     addEmployee,
     getAllEmployee,
-    getEmployeeAttendance
+    getEmployeeAttendance,
+
+    unpaidEmployees,
+    unapprovedEmployees,
+    approveEmployee,
+    editEmployee,
+    transferToPaidEmployee
 };

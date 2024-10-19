@@ -11,6 +11,10 @@ const employeeRouter = require('./routes/EmployeeRoutes')
 const AttendanceRouter = require('./routes/AttendanceRoutes')
 const HolidayRouter = require('./routes/HolidayRoutes')
 const ReceptionRouter = require('./routes/ReceptionRoutes')
+const HRRouter = require('./routes/HrRoutes')
+const AccountantRouter = require('./routes/AccountantRoutes')
+const AdminRouter = require('./routes/AdminRoutes')
+
 
 
 const bodyParser = require('body-parser')
@@ -28,6 +32,10 @@ app.use('/api/employee',employeeRouter)
 app.use('/api/attendance',AttendanceRouter)
 app.use('/api/holiday',HolidayRouter)
 app.use('/api/reception',ReceptionRouter)
+app.use('/api/hr',HRRouter)
+app.use('/api/accountant',AccountantRouter)
+app.use('/api/admin',AdminRouter)
+
 
 
 app.use(notFound)

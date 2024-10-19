@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+// const bcrypt = require('bcryptjs')
 
 // Define the Reception schema
-const receptionSchema = new Schema({
+const HRSchema = new Schema({
   name: {
     type: String,
     required: true,
@@ -24,11 +25,11 @@ const receptionSchema = new Schema({
   },
   role:{
     type:String,
-    default:'Reception'
+    default:'HR'
   }
 }, {
   timestamps: true, 
 });
 
-const ReceptionModel = mongoose.model('Reception', receptionSchema);
-module.exports = ReceptionModel;
+const HRModel = mongoose.model('HR', HRSchema);
+module.exports = HRModel;

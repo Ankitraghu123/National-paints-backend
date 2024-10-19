@@ -89,47 +89,46 @@ const staffData = [
 
 const salesData = [
 { id: 68, person_id: 0, name: 'ASHISH SHRIVASTAVA', salary: 29500, status: 'Active' },
-{ id: 69, person_id: 0, name: 'SANJAY SAHU', salary: 41500, status: 'Active' },
-{ id: 70, person_id: 0, name: 'RAVINDRA SONI', salary: 20000, status: 'Active' },
-{ id: 71, person_id: 0, name: 'PRADEEP KUSHWAHA', salary: 15000, status: 'Active' },
-{ id: 72, person_id: 0, name: 'DEEPAK YADAV', salary: 18000, status: 'Active' },
-{ id: 73, person_id: 0, name: 'VIJENDRA KUMAR', salary: 14000, status: 'Active' },
-{ id: 74, person_id: 0, name: 'SATISH SONWANE', salary: 15000, status: 'Active' },
-{ id: 75, person_id: 0, name: 'SANJEEV MEHTA', salary: 30000, status: 'Active' },
-{ id: 76, person_id: 0, name: 'HIMANSHU BAHE', salary: 52000, status: 'Active' },
+{ id: 69, person_id: 0, name: 'SANJEEV ASTHANA', salary: 27500, status: 'Active' },
+{ id: 70, person_id: 0, name: 'SANJAY SAHU', salary: 41500, status: 'Active' },
+{ id: 71, person_id: 0, name: 'RAVINDRA SONI', salary: 20000, status: 'Active' },
+{ id: 72, person_id: 0, name: 'PRADEEP KUSHWAHA', salary: 15000, status: 'Active' },
+{ id: 73, person_id: 0, name: 'DEEPAK YADAV', salary: 18000, status: 'Active' },
+{ id: 74, person_id: 0, name: 'VIJENDRA KUMAR', salary: 14000, status: 'Active' },
+{ id: 75, person_id: 0, name: 'SATISH SONWANE', salary: 15000, status: 'Active' },
+{ id: 76, person_id: 0, name: 'SANJEEV MEHTA', salary: 30000, status: 'Active' },
 { id: 77, person_id: 0, name: 'AWDESH GUPTA', salary: 100000, status: 'Active' },
-{ id: 78, person_id: 0, name: 'SANJEEV ASTHANA', salary: 27500, status: 'Active' },
 ]
 
 
 // Function to migrate data
 const migrateData = async () => {
   try {
-    // for (let labour of labourData) {
-    //   const newEmployee = new EmployeeModel({
-    //     name: labour.name,
-    //     salary: labour.salary,
-    //     personId: labour.person_id,
-    //     status: labour.status,
-    //     empType: 'labour', // Assuming all are labour
-    //     sqlId:labour.id
-    //   });
-    //   await newEmployee.save();
-    //     console.log(`Added ${labour.name}`);
-    // }
+    for (let labour of labourData) {
+      const newEmployee = new EmployeeModel({
+        name: labour.name,
+        salary: labour.salary,
+        personId: labour.person_id,
+        status: labour.status,
+        empType: 'labour', // Assuming all are labour
+        sqlId:labour.id
+      });
+      await newEmployee.save();
+        console.log(`Added ${labour.name}`);
+    }
 
-    //   for (let staff of staffData) {
-    //     const newEmployee = new EmployeeModel({
-    //       name: staff.name,
-    //       salary: staff.salary,
-    //       personId: staff.person_id,
-    //       status: staff.status,
-    //       empType: 'staff', // Assuming all are labour
-    //       sqlId:staff.id
-    //     });
-    //   await newEmployee.save();
-    //   console.log(`Added ${staff.name}`);
-    // }
+      for (let staff of staffData) {
+        const newEmployee = new EmployeeModel({
+          name: staff.name,
+          salary: staff.salary,
+          personId: staff.person_id,
+          status: staff.status,
+          empType: 'staff', // Assuming all are labour
+          sqlId:staff.id
+        });
+      await newEmployee.save();
+      console.log(`Added ${staff.name}`);
+    }
 
       for (let sales of salesData) {
         const newEmployee = new EmployeeModel({

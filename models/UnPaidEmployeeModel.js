@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
-// const { type } = require('os');
+const { type } = require('os');
 
-const EmployeeSchema = new mongoose.Schema({
+const UnPaidEmployeeSchema = new mongoose.Schema({
   name:String,
   Dob:Date,
   location:String,
@@ -54,6 +54,6 @@ const EmployeeSchema = new mongoose.Schema({
     timestamps: true
   });
 
-const EmployeeModel = mongoose.model('Employee', EmployeeSchema);
+const UnPaidEmployee = mongoose.model('UnPaidEmployee', UnPaidEmployeeSchema);
 
-module.exports = EmployeeModel;
+module.exports = UnPaidEmployee;
