@@ -12,6 +12,16 @@ const addEmployee = asyncHandler(async (req, res) => {
     }
 });
 
+const getSingleEmployee = asyncHandler(async (req, res) => {
+    try {
+        const {id} = req.params
+        const employee = await EmployeeModel.findById(id).populate('salaryArray')
+        res.status(201).json(employee);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to get employee', error: err.message });
+    }
+});
+
 const unpaidEmployees = asyncHandler(async (req, res) => {
     try {
         // Add the filter for approvedEmp: true
@@ -26,9 +36,9 @@ const unpaidEmployees = asyncHandler(async (req, res) => {
 
 const unapprovedEmployees = asyncHandler(async (req, res) => {
     try {
-        // Add the filter for approvedEmp: false
         const unapprovedEmployee = await UnPaidEmployeeModel.find({ approvedEmp: false })
             .populate('attendanceTime');
+
 
         res.status(200).json(unapprovedEmployee);
     } catch (err) {
@@ -150,7 +160,7 @@ const transferToPaidEmployee = asyncHandler(async (req, res) => {
 
 const getAllEmployee = asyncHandler(async (req, res) => {
     try {
-        const allEmployee = await EmployeeModel.find().populate('attendanceTime');
+        const allEmployee = await EmployeeModel.find().populate('attendanceTime').populate('salaryArray');
 
         res.status(201).json(allEmployee);
     } catch (err) {
@@ -180,11 +190,12 @@ const getEmployeeAttendance = async (req, res) => {
   };
 
 
+
 module.exports = {
     addEmployee,
     getAllEmployee,
     getEmployeeAttendance,
-
+    getSingleEmployee,
     unpaidEmployees,
     unapprovedEmployees,
     approveEmployee,

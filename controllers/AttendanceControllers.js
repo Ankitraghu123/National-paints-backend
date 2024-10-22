@@ -184,17 +184,19 @@ const todaysPresent = asyncHandler(async (req, res) => {
     const presentRecords = await AttendanceModel.find({
       date: today, 
       'timeLogs.checkIn': { $exists: true, $ne: null }
-    }).populate('empId'); 
+    }).populate({
+      path: 'empId',
+      model: 'Employee', // Only populate 'empId' if it's from 'Employee' model
+    });
 
-    console.log(presentRecords)
 
     // Map to get only the employee data
     const presentEmployees = presentRecords.map(record => ({
-      _id: record.empId._id,
-      name: record.empId.name,
-      salary: record.empId.salary,
-      empType: record.empId.empType,
-      status: record.empId.status
+      _id: record.empId?._id,
+      name: record.empId?.name,
+      salary: record.empId?.salary,
+      empType: record.empId?.empType,
+      status: record.empId?.status
     }));
 
     res.status(200).json({
@@ -217,7 +219,7 @@ const todaysAbsent = asyncHandler(async (req, res) => {
     const presentAttendanceRecords = await AttendanceModel.find({
       date: today,
       'timeLogs.checkIn': { $exists: true, $ne: null } // Check for valid check-ins
-    }).populate('empId'); // Populate to get employee details
+    }); // Populate to get employee details
 
     const presentEmployeeIds = presentAttendanceRecords.map(record => record.empId._id.toString());
 
@@ -246,7 +248,10 @@ const todaysAvailable = asyncHandler(async (req, res) => {
 
     const attendanceRecords = await AttendanceModel.find({
       date: today
-    }).populate('empId'); // Populate employee details
+    }).populate({
+      path: 'empId',
+      model: 'Employee', // Only populate 'empId' if it's from 'Employee' model
+    });; // Populate employee details
 
     const availableEmployees = attendanceRecords.filter(record => {
       const lastLog = record.timeLogs[record.timeLogs.length - 1]; // Get the last time log entry

@@ -3,8 +3,12 @@ const mongoose = require('mongoose');
 const AttendanceSchema = new mongoose.Schema({
   empId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Employee',
-    required: true
+    refPath: 'empModel'  // Dynamically reference based on the 'empModel' field
+  },
+  empModel: {
+    type: String,
+    // required: true,
+    enum: ['UnPaidEmployee', 'Employee']  // The two possible models it can reference
   },
   date: {
     type: String, 

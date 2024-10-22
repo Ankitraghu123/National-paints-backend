@@ -4,7 +4,7 @@ const { isAdmin } = require('../middlewares/authMiddlewares');
 const router = express.Router();
 
 
-router.post('/register',isAdmin, Register);
+router.post('/register', Register);
 
 
 module.exports = router;

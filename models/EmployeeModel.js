@@ -38,6 +38,10 @@ const EmployeeSchema = new mongoose.Schema({
     type:mongoose.Schema.Types.ObjectId,
     ref:'Attendance'
   }],
+  salaryArray:[{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'Salary'
+  }],
   check:{
     type:Number,
     default:0
