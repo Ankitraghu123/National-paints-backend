@@ -160,7 +160,7 @@ const transferToPaidEmployee = asyncHandler(async (req, res) => {
 
 const getAllEmployee = asyncHandler(async (req, res) => {
     try {
-        const allEmployee = await EmployeeModel.find().populate('attendanceTime').populate('salaryArray');
+        const allEmployee = await EmployeeModel.find().populate('attendanceTime').populate('salaryArray').populate('loans.loanArray');
 
         res.status(201).json(allEmployee);
     } catch (err) {

@@ -1,6 +1,7 @@
 const express = require('express');
 const { addEmployee, getAllEmployee, getEmployeeAttendance, unpaidEmployees, unapprovedEmployees, approveEmployee, editEmployee, transferToPaidEmployee, getSingleEmployee } = require('../controllers/EmployeeControllers');
-const { putSalary, paySalary, generateSalarySlip } = require('../controllers/SalaryController');
+const { putSalary, paySalary, generateSalarySlip, payAdvance } = require('../controllers/SalaryController');
+const { GiveLoan } = require('../controllers/LoanController');
 const router = express.Router();
 
 
@@ -30,7 +31,11 @@ router.post('/putSalary', putSalary);
 
 router.post('/paySalary', paySalary);
 
+router.put('/payAdvance', payAdvance);
+
 router.post('/generate-salary-slip', generateSalarySlip);
+
+router.post('/give-loan',GiveLoan)
 
 
 module.exports = router;

@@ -7,7 +7,7 @@ const SalarySchema = new mongoose.Schema({
     // unique: true
   },
   amount:{
-    type:String
+    type:Number
   },
   isPaid: {
     type: Boolean,
@@ -17,6 +17,17 @@ const SalarySchema = new mongoose.Schema({
     type:Number,
     default:1
   },
+  isSalaryApproved:{
+    type:Boolean,
+    default:false
+  },
+  advance:{
+    type:Boolean,
+    default:false
+  },
+  loanAmount:{
+    type:Number
+  }
 }, {
   timestamps: true
 });

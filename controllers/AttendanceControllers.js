@@ -277,6 +277,85 @@ const todaysAvailable = asyncHandler(async (req, res) => {
 });
 
 
+const editAttendanceTime = async (req, res) => {
+  const { empId, date, checkIn, checkOut } = req.body;
+  console.log(req.body);
+  
+  try {
+    // Find the attendance record for the specific employee and date
+    let attendanceRecord = await AttendanceModel.findOne({
+      empId,
+      date
+    });
+
+    console.log(attendanceRecord);
+
+    // If no attendance record exists, create a new one
+    if (!attendanceRecord) {
+      attendanceRecord = new AttendanceModel({
+        empId,
+        date,
+        timeLogs: [{}]  // Initialize with an empty timeLogs array
+      });
+    }
+
+    // Update the check-in and check-out times
+    if (checkIn) {
+      const checkInDateTime = new Date(date);
+      const [hours, minutes] = checkIn.split(':'); // Assuming checkIn is in "HH:mm" format
+      checkInDateTime.setHours(hours, minutes);
+      attendanceRecord.timeLogs[0].checkIn = checkInDateTime;
+
+      const earliestCheckIn = new Date(date);
+      earliestCheckIn.setHours(10, 0); // 10:00 AM
+
+      if (checkInDateTime < earliestCheckIn) {
+        checkInDateTime.setHours(10, 0); // Set to 10:00 AM if earlier
+      }
+
+      attendanceRecord.timeLogs[0].checkIn = checkInDateTime;
+    }
+
+    if (checkOut) {
+      const checkOutDateTime = new Date(date);
+      const [hours, minutes] = checkOut.split(':'); // Assuming checkOut is in "HH:mm" format
+      checkOutDateTime.setHours(hours, minutes);
+      attendanceRecord.timeLogs[0].checkOut = checkOutDateTime;
+    }
+
+    // Calculate total hours if both check-in and check-out times are provided
+    if (attendanceRecord.timeLogs[0].checkIn && attendanceRecord.timeLogs[0].checkOut) {
+      const checkInTime = attendanceRecord.timeLogs[0].checkIn;
+      const checkOutTime = attendanceRecord.timeLogs[0].checkOut;
+      const totalHours = (checkOutTime - checkInTime) / (1000 * 60 * 60); // Convert ms to hours
+      attendanceRecord.totalHours = totalHours > 0 ? totalHours : 0; // Ensure non-negative
+    }
+
+    // Save the updated or newly created attendance record
+    const savedAttendance = await attendanceRecord.save();
+    console.log(savedAttendance);
+
+    const employeeUpdate = await EmployeeModel.findByIdAndUpdate(
+      empId,
+      { $addToSet: { attendanceTime: savedAttendance._id } }, // Push attendance ID into the attendanceTime array
+      { new: true }
+    );
+
+    // If employee not found, handle accordingly
+    if (!employeeUpdate) {
+      return res.status(404).json({
+        message: 'Employee not found'
+      });
+    }
+
+    res.status(200).json({ message: 'Attendance record updated successfully', attendance: savedAttendance });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error updating attendance record', error: error.message });
+  }
+};
 
 
-module.exports = { checkin,checkout,todaysPresent,todaysAbsent,todaysAvailable };
+
+
+module.exports = { checkin,checkout,todaysPresent,todaysAbsent,todaysAvailable,editAttendanceTime };

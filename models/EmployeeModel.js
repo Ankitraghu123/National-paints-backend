@@ -53,7 +53,17 @@ const EmployeeSchema = new mongoose.Schema({
     type: String,
     default: 'Active'
   },
-  sqlId:String
+  sqlId:String,
+  loans: [{
+    totalAmount: {
+      type: Number,
+      required: true
+    },
+    loanArray: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Loan'
+    }]
+  }]
   }, {
     timestamps: true
   });

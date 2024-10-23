@@ -1,61 +1,88 @@
 const asyncHandler = require('express-async-handler');
 const SalaryModel = require('../models/SalaryModel'); // Adjust the path as needed
 const EmployeeModel = require('../models/EmployeeModel'); // Adjust the path as needed
+const LoanModel = require('../models/LoanModel');
 
 const putSalary = asyncHandler(async (req, res) => {
-    try {
-      const { month, amount, empId } = req.body;
-  
-  
-      // Find employee by ID
-      const employee = await EmployeeModel.findById(empId);
-      if (!employee) {
-        console.log("Employee not found");
-        return res.status(404).json({ message: 'Employee not found' });
-      }
-  
-      const providedMonth = new Date(month).getMonth();
-      const providedYear = new Date(month).getFullYear();
-  
-      const existingSalary = await SalaryModel.findOne({
-        _id: { $in: employee.salaryArray }, // Check within employee's salaryArray
-        $expr: {
-          $and: [
-            { $eq: [{ $month: "$month" }, providedMonth + 1] }, // +1 because $month returns 1-12
-            { $eq: [{ $year: "$month" }, providedYear] },
-          ],
-        },
-      });
-      
-  
-      if (existingSalary) {
-        return res.status(400).json({ message: `Salary for the month of ${providedMonth + 1} already exists.` });
-      }
-  
-      const salaryRecord = new SalaryModel({
-        month, // Storing the whole date object
-        amount,
-      });
-  
-      await salaryRecord.save();
-  
-      employee.salaryArray.push(salaryRecord._id);
-      await employee.save();
-  
-      res.status(200).json({
-        message: `Salary for the month of ${providedMonth + 1} updated and linked to employee successfully`,
-        salaryRecord,
-        employee,
-      });
-  
-    } catch (error) {
-      console.error("Error in putSalary controller:", error);
-      res.status(500).json({
-        message: 'Failed to update salary for the month',
-        error: error.message,
+  try {
+    const { month, amount, empId } = req.body;
+
+    // Find employee by ID
+    const employee = await EmployeeModel.findById(empId);
+    if (!employee) {
+      return res.status(404).json({ message: 'Employee not found' });
+    }
+
+    const providedMonth = new Date(month).getMonth();
+    const providedYear = new Date(month).getFullYear();
+
+    // Check if the salary record already exists for the given month and year
+    let existingSalary = await SalaryModel.findOne({
+      _id: { $in: employee.salaryArray }, // Check within employee's salaryArray
+      $expr: {
+        $and: [
+          { $eq: [{ $month: "$month" }, providedMonth + 1] }, // +1 because $month returns 1-12
+          { $eq: [{ $year: "$month" }, providedYear] },
+        ],
+      },
+    });
+
+    // **New Logic**: Find the loan for this employee and month, if any
+    const loanForMonth = await LoanModel.findOne({
+      empId: empId,
+      $expr: {
+        $and: [
+          { $eq: [{ $month: "$month" }, providedMonth + 1] }, // Matching month
+          { $eq: [{ $year: "$month" }, providedYear] },       // Matching year
+        ],
+      },
+    });
+
+    // If a loan exists for this month, get the loan amount
+    const loanAmount = loanForMonth ? loanForMonth.amount : 0;
+
+    if (existingSalary) {
+      // If salary record exists, update the amount and loan amount
+      existingSalary.amount = amount;
+      existingSalary.loanAmount = loanAmount; // Deduct loan if present
+      existingSalary.isSalaryApproved = true;
+      await existingSalary.save();
+
+      return res.status(200).json({
+        message: `Salary for the month of ${providedMonth + 1} updated successfully.`,
+        salaryRecord: existingSalary,
       });
     }
-  });
+
+    // If no existing salary, create a new record
+    const newSalaryRecord = new SalaryModel({
+      month, // Storing the whole date object
+      amount,
+      loanAmount, // Store loan deduction for the month
+      isSalaryApproved: true,
+    });
+
+    await newSalaryRecord.save();
+
+    // Add new salary record to employee's salary array
+    employee.salaryArray.push(newSalaryRecord._id);
+    await employee.save();
+
+    res.status(200).json({
+      message: `Salary for the month of ${providedMonth + 1} added and linked to employee successfully.`,
+      salaryRecord: newSalaryRecord,
+      employee,
+    });
+
+  } catch (error) {
+    console.error("Error in putSalary controller:", error);
+    res.status(500).json({
+      message: 'Failed to update salary for the month',
+      error: error.message,
+    });
+  }
+});
+
 
   const paySalary = asyncHandler(async (req, res) => {
     try {
@@ -99,6 +126,70 @@ const putSalary = asyncHandler(async (req, res) => {
     }
   });
 
+  const payAdvance = asyncHandler(async (req, res) => {
+    try {
+      const { empId, month } = req.body;
+      console.log(month)
+      // Find the employee
+      const employee = await EmployeeModel.findById(empId);
+      if (!employee) {
+        return res.status(404).json({ message: 'Employee not found' });
+      }
+  
+      const providedMonth = new Date(month).getMonth();
+      const providedYear = new Date(month).getFullYear();
+      // console.log(providedMonth)
+      // Find the salary record for the specified month
+      let salaryRecord = await SalaryModel.findOne({
+        _id: { $in: employee.salaryArray },
+        $expr: {
+          $and: [
+            { $eq: [{ $month: "$month" }, providedMonth +1] },
+            { $eq: [{ $year: "$month" }, providedYear] },
+          ],
+        },
+      });
+  
+      if (!salaryRecord) {
+        salaryRecord = new SalaryModel({
+          month : month,      // Storing the whole date object
+          amount: 0,  // Defaulting amount to zero
+          advance: true, // Marking advance as true for the new record
+        });
+  
+        await salaryRecord.save();
+  
+        // Add the new salary record to the employee's salary array
+        employee.salaryArray.push(salaryRecord._id);
+        await employee.save();
+  
+        return res.status(200).json({
+          message: `New salary record created and advance for the month of ${providedMonth + 1} marked as paid.`,
+          salaryRecord,
+          employee,
+        });
+      }
+  
+      // If salary record exists, update it by setting advance to true
+      salaryRecord.advance = true;
+      await salaryRecord.save();
+  
+      res.status(200).json({
+        message: `Advance for the month of ${providedMonth + 1} marked as paid.`,
+        salaryRecord,
+      });
+  
+    } catch (error) {
+      console.error("Error in payAdvance controller:", error);
+      res.status(500).json({
+        message: 'Failed to mark advance as paid',
+        error: error.message,
+      });
+    }
+  });
+  
+  
+  
 
   const generateSalarySlip = asyncHandler(async (req, res) => {
     try {
@@ -142,5 +233,6 @@ const putSalary = asyncHandler(async (req, res) => {
 module.exports = {
   putSalary,
   paySalary,
-  generateSalarySlip
+  generateSalarySlip,
+  payAdvance
 };
