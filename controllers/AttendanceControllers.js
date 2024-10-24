@@ -308,14 +308,15 @@ const editAttendanceTime = async (req, res) => {
       const checkInDateTime = new Date(date);
       checkInDateTime.setUTCHours(hours - 5, minutes - 30); // Adjust for local offset to UTC
       attendanceRecord.timeLogs[0].checkIn = checkInDateTime;
-    
+
       // Ensure check-in is not before 10:00 AM local time
       const earliestCheckIn = new Date(date);
       earliestCheckIn.setUTCHours(10, 0); // 10:00 AM local time
       const earliestCheckInUTC = new Date(earliestCheckIn.getTime() - localOffset); // Convert to UTC
-    
+
+      // If check-in time is earlier than the earliest allowed time, set it to 10:00 AM UTC
       if (checkInDateTime < earliestCheckInUTC) {
-        attendanceRecord.timeLogs[0].checkIn = earliestCheckInUTC; // Set to 10:00 AM UTC if earlier
+        attendanceRecord.timeLogs[0].checkIn = earliestCheckInUTC; // Set to 10:00 AM UTC
       }
     }
 
