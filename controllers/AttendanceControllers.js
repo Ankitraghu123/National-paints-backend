@@ -280,8 +280,10 @@ const todaysAvailable = asyncHandler(async (req, res) => {
 const editAttendanceTime = async (req, res) => {
   const { empId, date, checkIn, checkOut } = req.body;
   console.log(req.body);
-  const localOffset = 5.5 * 60 * 60 * 1000
   
+  // Define the local offset for IST (UTC +5:30)
+  const localOffset = 5.5 * 60 * 60 * 1000;
+
   try {
     // Find the attendance record for the specific employee and date
     let attendanceRecord = await AttendanceModel.findOne({
@@ -300,35 +302,36 @@ const editAttendanceTime = async (req, res) => {
       });
     }
 
-    // Update the check-in and check-out times
+    // Update the check-in time
     if (checkIn) {
-      const checkInDateTime = new Date(date);
       const [hours, minutes] = checkIn.split(':'); // Assuming checkIn is in "HH:mm" format
-      checkInDateTime.setHours(hours, minutes);
+      const checkInDateTime = new Date(date);
+      checkInDateTime.setUTCHours(hours - 5, minutes - 30); // Adjust for local offset to UTC
       attendanceRecord.timeLogs[0].checkIn = checkInDateTime;
 
-      let earliestCheckIn = new Date(date);
-      earliestCheckIn.setHours(10, 0); // 10:00 AM
+      // Ensure check-in is not before 10:00 AM
+      const earliestCheckIn = new Date(date);
+      earliestCheckIn.setUTCHours(10, 0); // 10:00 AM in local time
+      earliestCheckIn.setUTCHours(earliestCheckIn.getUTCHours() - 5, earliestCheckIn.getUTCMinutes() - 30); // Convert to UTC
 
-      earliestCheckIn = new Date(earliestCheckIn.getTime() - localOffset);
       if (checkInDateTime < earliestCheckIn) {
-        checkInDateTime.setHours(10, 0); // Set to 10:00 AM if earlier
+        checkInDateTime.setUTCHours(10, 0); // Set to 10:00 AM if earlier
       }
 
       attendanceRecord.timeLogs[0].checkIn = checkInDateTime;
     }
 
+    // Update the check-out time
     if (checkOut) {
-      const checkOutDateTime = new Date(date);
       const [hours, minutes] = checkOut.split(':'); // Assuming checkOut is in "HH:mm" format
-      checkOutDateTime.setHours(hours, minutes);
+      const checkOutDateTime = new Date(date);
+      checkOutDateTime.setUTCHours(hours - 5, minutes - 30); // Adjust for local offset to UTC
       attendanceRecord.timeLogs[0].checkOut = checkOutDateTime;
     }
 
     // Calculate total hours if both check-in and check-out times are provided
-    if (attendanceRecord.timeLogs[0].checkIn && attendanceRecord.timeLogs[0].checkOut) {
-      const checkInTime = attendanceRecord.timeLogs[0].checkIn;
-      const checkOutTime = attendanceRecord.timeLogs[0].checkOut;
+    const { checkIn: checkInTime, checkOut: checkOutTime } = attendanceRecord.timeLogs[0];
+    if (checkInTime && checkOutTime) {
       const totalHours = (checkOutTime - checkInTime) / (1000 * 60 * 60); // Convert ms to hours
       attendanceRecord.totalHours = totalHours > 0 ? totalHours : 0; // Ensure non-negative
     }
@@ -339,15 +342,13 @@ const editAttendanceTime = async (req, res) => {
 
     const employeeUpdate = await EmployeeModel.findByIdAndUpdate(
       empId,
-      { $addToSet: { attendanceTime: savedAttendance._id } }, // Push attendance ID into the attendanceTime array
+      { $addToSet: { attendanceTime: savedAttendance._id } },
       { new: true }
     );
 
     // If employee not found, handle accordingly
     if (!employeeUpdate) {
-      return res.status(404).json({
-        message: 'Employee not found'
-      });
+      return res.status(404).json({ message: 'Employee not found' });
     }
 
     res.status(200).json({ message: 'Attendance record updated successfully', attendance: savedAttendance });
@@ -356,6 +357,7 @@ const editAttendanceTime = async (req, res) => {
     res.status(500).json({ message: 'Error updating attendance record', error: error.message });
   }
 };
+
 
 
 
