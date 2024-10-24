@@ -280,6 +280,7 @@ const todaysAvailable = asyncHandler(async (req, res) => {
 const editAttendanceTime = async (req, res) => {
   const { empId, date, checkIn, checkOut } = req.body;
   console.log(req.body);
+  const localOffset = 5.5 * 60 * 60 * 1000
   
   try {
     // Find the attendance record for the specific employee and date
@@ -306,9 +307,10 @@ const editAttendanceTime = async (req, res) => {
       checkInDateTime.setHours(hours, minutes);
       attendanceRecord.timeLogs[0].checkIn = checkInDateTime;
 
-      const earliestCheckIn = new Date(date);
+      let earliestCheckIn = new Date(date);
       earliestCheckIn.setHours(10, 0); // 10:00 AM
 
+      earliestCheckIn = new Date(earliestCheckIn.getTime() - localOffset);
       if (checkInDateTime < earliestCheckIn) {
         checkInDateTime.setHours(10, 0); // Set to 10:00 AM if earlier
       }
