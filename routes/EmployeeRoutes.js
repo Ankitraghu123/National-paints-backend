@@ -19,7 +19,6 @@ router.get('/unapproved',unapprovedEmployees)
 
 router.get('/:id', getSingleEmployee);
 
-
 router.put('/approve/:id',approveEmployee)
 
 router.delete('/reject/:id',rejectEmployee)

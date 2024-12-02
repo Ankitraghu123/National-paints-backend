@@ -24,8 +24,11 @@ const rejectEmployee = asyncHandler(async (req, res) => {
 
 const getSingleEmployee = asyncHandler(async (req, res) => {
     try {
-        const {id} = req.params
-        const employee = await EmployeeModel.findById(id).populate('salaryArray')
+        const { id } = req.params;
+        const employee = await EmployeeModel.findById(id)
+            .populate('salaryArray')
+            .populate('loans.loanArray');
+
         res.status(201).json(employee);
     } catch (err) {
         res.status(500).json({ message: 'Failed to get employee', error: err.message });
