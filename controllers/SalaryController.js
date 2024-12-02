@@ -91,8 +91,6 @@ const putSalary = asyncHandler(async (req, res) => {
   }
 });
 
-
-
 const disapproveSalary = asyncHandler(async (req, res) => {
   try {
     const { month, empId } = req.body;
@@ -122,7 +120,7 @@ const disapproveSalary = asyncHandler(async (req, res) => {
     }
 
     // Update the salary record to disapprove it
-    await SalaryModel.findByIdAndDelete(existingSalary._id);
+    await SalaryModel.findByIdAndUpdate(existingSalary._id,{isSalaryApproved:false});
 
     return res.status(200).json({
       message: `Salary for the month of ${providedMonth + 1} disapproved successfully.`,
