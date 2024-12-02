@@ -122,7 +122,7 @@ const disapproveSalary = asyncHandler(async (req, res) => {
     }
 
     // Update the salary record to disapprove it
-    await SalaryModel.findByIdAndUpdate(existingSalary._id,{isSalaryApproved:false});
+    await SalaryModel.findByIdAndDelete(existingSalary._id);
 
     return res.status(200).json({
       message: `Salary for the month of ${providedMonth + 1} disapproved successfully.`,
@@ -334,5 +334,5 @@ module.exports = {
   generateSalarySlip,
   payAdvance,
   disapproveSalary,
-  unpayAdvance
+  
 };
