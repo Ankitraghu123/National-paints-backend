@@ -91,6 +91,8 @@ const putSalary = asyncHandler(async (req, res) => {
   }
 });
 
+
+
 const disapproveSalary = asyncHandler(async (req, res) => {
   try {
     const { month, empId } = req.body;
@@ -120,7 +122,7 @@ const disapproveSalary = asyncHandler(async (req, res) => {
     }
 
     // Update the salary record to disapprove it
-    await SalaryModel.findByIdAndDelete(existingSalary._id);
+    await SalaryModel.findByIdAndUpdate(existingSalary._id,{isSalaryApproved:false});
 
     return res.status(200).json({
       message: `Salary for the month of ${providedMonth + 1} disapproved successfully.`,
@@ -237,6 +239,53 @@ const disapproveSalary = asyncHandler(async (req, res) => {
       });
     }
   });
+
+  const unpayAdvance = asyncHandler(async (req, res) => {
+    try {
+      const { empId, month } = req.body;
+  
+      // Find the employee
+      const employee = await EmployeeModel.findById(empId);
+      if (!employee) {
+        return res.status(404).json({ message: 'Employee not found' });
+      }
+  
+      const providedMonth = new Date(month).getMonth();
+      const providedYear = new Date(month).getFullYear();
+  
+      // Find the salary record for the specified month
+      const salaryRecord = await SalaryModel.findOne({
+        _id: { $in: employee.salaryArray },
+        $expr: {
+          $and: [
+            { $eq: [{ $month: "$month" }, providedMonth + 1] },
+            { $eq: [{ $year: "$month" }, providedYear] },
+          ],
+        },
+      });
+  
+      if (!salaryRecord) {
+        return res.status(404).json({
+          message: `No salary record found for the month ${providedMonth + 1} of ${providedYear}.`,
+        });
+      }
+  
+      // If the salary record exists, update the `advance` field to `false`
+      salaryRecord.advance = false;
+      await salaryRecord.save();
+  
+      res.status(200).json({
+        message: `Advance for the month of ${providedMonth + 1} has been marked as unpaid.`,
+        salaryRecord,
+      });
+    } catch (error) {
+      console.error("Error in unpayAdvance controller:", error);
+      res.status(500).json({
+        message: 'Failed to mark advance as unpaid',
+        error: error.message,
+      });
+    }
+  });
   
   
 
@@ -284,5 +333,6 @@ module.exports = {
   paySalary,
   generateSalarySlip,
   payAdvance,
-  disapproveSalary
+  disapproveSalary,
+  unpayAdvance
 };

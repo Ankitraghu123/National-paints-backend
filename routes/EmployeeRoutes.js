@@ -1,6 +1,6 @@
 const express = require('express');
 const { addEmployee, getAllEmployee, getEmployeeAttendance, unpaidEmployees, unapprovedEmployees, approveEmployee, editEmployee, transferToPaidEmployee, getSingleEmployee, editSalary, deleteEmployee, rejectEmployee, getAgainEmployee, deletePermanently } = require('../controllers/EmployeeControllers');
-const { putSalary, paySalary, generateSalarySlip, payAdvance, disapproveSalary } = require('../controllers/SalaryController');
+const { putSalary, paySalary, generateSalarySlip, payAdvance, disapproveSalary,unpayAdvance } = require('../controllers/SalaryController');
 const { GiveLoan } = require('../controllers/LoanController');
 const { isHR } = require('../middlewares/authMiddlewares');
 const router = express.Router();
@@ -40,6 +40,8 @@ router.post('/pullSalary',disapproveSalary)
 router.post('/paySalary', paySalary);
 
 router.put('/payAdvance', payAdvance);
+
+router.put('/unpayAdvance', unpayAdvance);
 
 router.post('/generate-salary-slip', generateSalarySlip);
 
