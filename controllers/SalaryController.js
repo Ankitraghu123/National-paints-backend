@@ -334,5 +334,5 @@ module.exports = {
   generateSalarySlip,
   payAdvance,
   disapproveSalary,
-  
+  unpayAdvance
 };
