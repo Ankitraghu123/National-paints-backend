@@ -6,6 +6,10 @@ const LoanSchema = new mongoose.Schema({
     required: true,
     // unique: true
   },
+  installmentPaid:{
+    type:Boolean,
+    default:false
+  },
   amount:{
     type:Number
   },

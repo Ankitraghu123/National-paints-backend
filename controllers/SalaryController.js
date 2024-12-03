@@ -158,6 +158,18 @@ const disapproveSalary = asyncHandler(async (req, res) => {
         return res.status(404).json({ message: `Salary record for the month of ${providedMonth + 1} not found.` });
       }
 
+      const loanRecord = await LoanModel.findOne({
+        empId:empId,
+        $expr:{
+          $and:[{ $eq: [{ $month: "$month" }, providedMonth + 1] }, { $eq: [{ $year: "$month" }, providedYear] }]
+        }
+      })
+
+      if(loanRecord){
+        loanRecord.installmentPaid = true;
+        await loanRecord.save();
+      }
+
       salaryRecord.isPaid = true;
       salaryRecord.bonus = bonus;
       salaryRecord.deduction = deduction;
