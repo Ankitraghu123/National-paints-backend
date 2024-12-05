@@ -119,25 +119,44 @@ const editEmployee = asyncHandler(async (req, res) => {
 
 const editSalary = asyncHandler(async (req, res) => {
     try {
-        const {amount,date,empId} = req.body
+        const { amount, date, empId } = req.body;
         const employee = await EmployeeModel.findById(empId);
 
         if (!employee) {
             return res.status(404).json({ message: 'Employee not found' });
         }
 
-        employee.currentSalary = amount
+        const newDate = new Date(date);
+        const existingEntryIndex = employee.editedSalary.findIndex(entry => {
+            const entryDate = new Date(entry.date);
+            return entryDate.getFullYear() === newDate.getFullYear() &&
+                   entryDate.getMonth() === newDate.getMonth();
+        });
 
-        employee.editedSalary.push({ date: new Date(date), amount });
+        if (existingEntryIndex !== -1) {
+            // Update the existing entry
+            employee.editedSalary[existingEntryIndex] = {
+                date: newDate,
+                amount,
+                previousSalary: employee.salary || 0
+            };
+        } else {
+            // Add a new entry
+            employee.editedSalary.push({
+                date: newDate,
+                amount,
+                previousSalary: employee.salary || 0
+            });
+        }
 
-        await employee.save()
+        employee.salary = amount;
+        await employee.save();
 
         res.status(200).json({
             message: 'Employee Salary updated successfully',
             employee
         });
     } catch (err) {
-        // Catch any error and return a server error response
         res.status(500).json({ message: 'Failed to update employee', error: err.message });
     }
 });
