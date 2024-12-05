@@ -27,7 +27,7 @@ const putSalary = asyncHandler(async (req, res) => {
     });
 
     // **New Logic**: Find the loan for this employee and month, if any
-    const loanForMonth = await LoanModel.findOne({
+    const loansForMonth = await LoanModel.find({
       empId: empId,
       $expr: {
         $and: [
@@ -37,13 +37,13 @@ const putSalary = asyncHandler(async (req, res) => {
       },
     });
 
-    // If a loan exists for this month, get the loan amount
-    const loanAmount = loanForMonth ? loanForMonth.amount : 0;
+    // Calculate the total loan amount for the month
+    const totalLoanAmount = loansForMonth.reduce((total, loan) => total + loan.amount, 0);
 
     if (existingSalary) {
       // If salary record exists, update the amount and loan amount
       existingSalary.amount = amount;
-      existingSalary.loanAmount = loanAmount; // Deduct loan if present
+      existingSalary.loanAmount = totalLoanAmount; // Deduct loan if present
       existingSalary.isSalaryApproved = true;
       existingSalary.leavesTaken = leaveTaken;
       if(employee.empType != 'staff' && employee.empType != 'sales'){
@@ -64,7 +64,7 @@ const putSalary = asyncHandler(async (req, res) => {
     const newSalaryRecord = new SalaryModel({
       month, 
       amount,
-      loanAmount, // Store loan deduction for the month
+      loanAmount: totalLoanAmount, // Store loan deduction for the month
       leavesTaken:leaveTaken,
       leave:employee.empType == 'staff' || employee.empType == 'sales' ? defaultLeave !== undefined ? defaultLeave + 1 : 1 : 0,
       isSalaryApproved: true,
