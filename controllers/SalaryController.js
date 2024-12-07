@@ -188,6 +188,50 @@ const disapproveSalary = asyncHandler(async (req, res) => {
     }
   });
 
+  const unpaySalary = asyncHandler(async (req, res) => {
+    try {
+      const { empId, month, bonus, deduction } = req.body;
+  
+      const employee = await EmployeeModel.findById(empId);
+      if (!employee) {
+        return res.status(404).json({ message: 'Employee not found' });
+      }
+  
+      const providedMonth = new Date(month).getMonth();
+      const providedYear = new Date(month).getFullYear();
+  
+      const salaryRecord = await SalaryModel.findOne({
+        _id: { $in: employee.salaryArray },
+        $expr: {
+          $and: [
+            { $eq: [{ $month: "$month" }, providedMonth + 1] }, 
+            { $eq: [{ $year: "$month" }, providedYear] },
+          ],
+        },
+      });
+  
+      if (!salaryRecord) {
+        return res.status(404).json({ message: `Salary record for the month of ${providedMonth + 1} not found.` });
+      }
+
+      salaryRecord.isPaid = false;
+      salaryRecord.bonus = 0;
+      salaryRecord.deduction = 0;
+      await salaryRecord.save();
+  
+      res.status(200).json({
+        message: `Salary for the month of ${providedMonth + 1} marked as unpaid.`,
+        salaryRecord,
+      });
+    } catch (error) {
+      console.error("Error in paySalary controller:", error);
+      res.status(500).json({
+        message: 'Failed to mark salary as unpaid',
+        error: error.message,
+      });
+    }
+  });
+
   const payAdvance = asyncHandler(async (req, res) => {
     try {
       const { empId, month } = req.body;
@@ -344,5 +388,6 @@ module.exports = {
   generateSalarySlip,
   payAdvance,
   disapproveSalary,
-  unpayAdvance
+  unpayAdvance,
+  unpaySalary
 };

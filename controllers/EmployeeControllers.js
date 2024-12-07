@@ -261,10 +261,11 @@ const getEmployeeAttendance = async (req, res) => {
         const emp = await EmployeeModel.findById(id)
 
         emp.delete = true
+        emp.status = "Inactive"
 
         await emp.save()
 
-        res.status(200).json(deleteEmp);
+        res.status(200).json(emp);
     }catch(err) {
         console.error("Error fetching attendance records:", err);
       res.status(500).json({ message: "Internal Server Error" });
