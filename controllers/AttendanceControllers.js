@@ -390,67 +390,138 @@ const checkout = asyncHandler(async (req, res) => {
 const guardCheckIn = asyncHandler(async (req, res) => {
   try {
     const { empId, setTime } = req.body;
-    const localOffset = 5.5 * 60 * 60 * 1000
-    console.log(setTime)
+    const emp = await EmployeeModel.findById(empId)
+    if (emp.empType === 'guard') {
+      const localOffset = 5.5 * 60 * 60 * 1000
+      console.log(setTime)
   
-    let checkinTime = new Date(setTime); // Parse the check-in time
-    const checkinDate = extractDate(checkinTime); // Extract the date without time
+      let checkinTime = new Date(setTime); // Parse the check-in time
+      const checkinDate = extractDate(checkinTime); // Extract the date without time
     
-    // Define the cutoff time as 10:00 AM
-    let cutoffTime = new Date(checkinTime);
-    cutoffTime.setHours(9, 0, 0, 0); 
+      // Define the cutoff time as 10:00 AM
+      let cutoffTime = new Date(checkinTime);
+      cutoffTime.setHours(9, 0, 0, 0);
 
-    cutoffTime = new Date(cutoffTime.getTime() - localOffset);
+      cutoffTime = new Date(cutoffTime.getTime() - localOffset);
 
-    console.log("cutoffTimebefore" , cutoffTime)
-    console.log("checkinTime" , checkinTime)
+      console.log("cutoffTimebefore", cutoffTime)
+      console.log("checkinTime", checkinTime)
 
-    if (checkinTime < cutoffTime) {
-      console.log("cutoffTime" , cutoffTime)
-      checkinTime = cutoffTime;
-    }
-    let attendance = await AttendanceModel.findOne({
-      empId,
-      date: checkinDate
-    });
-
-    if (attendance) {
-      attendance.timeLogs.push({ checkIn: checkinTime });
-    } else {
-      attendance = new AttendanceModel({
-        empId: empId,
-        date: checkinDate,
-        timeLogs: [{ checkIn: checkinTime }],
-      });
-    }
-
-    const savedAttendance = await attendance.save();
-
-    const employeeUpdate = await EmployeeModel.findByIdAndUpdate(
-      empId,
-      { $addToSet: { attendanceTime: savedAttendance._id }, check: 1 }, 
-      { new: true }
-    );
-
-    // If employee not found in EmployeeModel, check UnPaidEmployeeModel
-    if (!employeeUpdate) {
-      const unpaidEmployeeUpdate = await UnPaidEmployeeModel.findByIdAndUpdate(
+      if (checkinTime < cutoffTime) {
+        console.log("cutoffTime", cutoffTime)
+        checkinTime = cutoffTime;
+      }
+      let attendance = await AttendanceModel.findOne({
         empId,
-        { $addToSet: { attendanceTime: savedAttendance._id },check: 1 },
+        date: checkinDate
+      });
+
+      if (attendance) {
+        attendance.timeLogs.push({ checkIn: checkinTime });
+      } else {
+        attendance = new AttendanceModel({
+          empId: empId,
+          date: checkinDate,
+          timeLogs: [{ checkIn: checkinTime }],
+        });
+      }
+
+      const savedAttendance = await attendance.save();
+
+      const employeeUpdate = await EmployeeModel.findByIdAndUpdate(
+        empId,
+        { $addToSet: { attendanceTime: savedAttendance._id }, check: 1 },
         { new: true }
       );
 
-      if (!unpaidEmployeeUpdate) {
-        return res.status(404).json({
-          message: 'Employee not found in both Employee and UnPaidEmployee models'
+      // If employee not found in EmployeeModel, check UnPaidEmployeeModel
+      if (!employeeUpdate) {
+        const unpaidEmployeeUpdate = await UnPaidEmployeeModel.findByIdAndUpdate(
+          empId,
+          { $addToSet: { attendanceTime: savedAttendance._id }, check: 1 },
+          { new: true }
+        );
+
+        if (!unpaidEmployeeUpdate) {
+          return res.status(404).json({
+            message: 'Employee not found in both Employee and UnPaidEmployee models'
+          });
+        }
+      }
+
+      res.status(200).json({
+        message: 'Check-in successful',
+        attendance: savedAttendance
+      });
+    } else {
+      const localOffset = 5.5 * 60 * 60 * 1000
+      console.log(setTime)
+  
+      let checkinTime = new Date(setTime); // Parse the check-in time
+      const checkinDate = extractDate(checkinTime); // Extract the date without time
+    
+      // Define the cutoff time as 10:00 AM
+      // let cutoffTime = new Date(checkinTime);
+      // cutoffTime.setHours(9, 0, 0, 0);
+
+      // cutoffTime = new Date(cutoffTime.getTime() - localOffset);
+    
+    // Define the cutoff time as 9:00 AM
+    let cutoffTime = new Date(Date.UTC(checkinTime.getFullYear(), checkinTime.getMonth(), checkinTime.getDate(), 9, 0, 0, 0)); 
+
+    console.log('cutofftime',cutoffTime)
+
+
+      console.log("cutoffTimebefore", cutoffTime)
+      console.log("checkinTime", checkinTime)
+
+      if (checkinTime < cutoffTime) {
+        console.log("cutoffTime", cutoffTime)
+        checkinTime = cutoffTime;
+      }
+      let attendance = await AttendanceModel.findOne({
+        empId,
+        date: checkinDate
+      });
+
+      if (attendance) {
+        attendance.timeLogs.push({ checkIn: checkinTime });
+      } else {
+        attendance = new AttendanceModel({
+          empId: empId,
+          date: checkinDate,
+          timeLogs: [{ checkIn: checkinTime }],
         });
       }
-    }
 
-    res.status(200).json({
-      message: 'Check-in successful',
-      attendance: savedAttendance
-    });
+      const savedAttendance = await attendance.save();
+
+      const employeeUpdate = await EmployeeModel.findByIdAndUpdate(
+        empId,
+        { $addToSet: { attendanceTime: savedAttendance._id }, check: 1 },
+        { new: true }
+      );
+
+      // If employee not found in EmployeeModel, check UnPaidEmployeeModel
+      if (!employeeUpdate) {
+        const unpaidEmployeeUpdate = await UnPaidEmployeeModel.findByIdAndUpdate(
+          empId,
+          { $addToSet: { attendanceTime: savedAttendance._id }, check: 1 },
+          { new: true }
+        );
+
+        if (!unpaidEmployeeUpdate) {
+          return res.status(404).json({
+            message: 'Employee not found in both Employee and UnPaidEmployee models'
+          });
+        }
+      }
+
+      res.status(200).json({
+        message: 'Check-in successful',
+        attendance: savedAttendance
+      });
+    }
   } catch (err) {
     res.status(500).json({
       message: 'Failed to check in',

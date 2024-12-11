@@ -55,6 +55,4 @@ router.delete('/delete/:id',deletePermanently)
 router.put('/get-again/:id',getAgainEmployee)
 
 
-
-
 module.exports = router;
