@@ -23,8 +23,7 @@ router.put('/approve/:id',approveEmployee)
 
 router.delete('/reject/:id',rejectEmployee)
 
-
-router.put('/edit/:id',editEmployee)
+router.put('/edit/:id', editEmployee)
 
 router.put('/edit-salary',isHR,editSalary)
 
