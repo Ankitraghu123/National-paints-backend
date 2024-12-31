@@ -22,6 +22,7 @@ const putSalary = asyncHandler(async (req, res) => {
         $and: [
           { $eq: [{ $month: "$month" }, providedMonth + 1] }, // +1 because $month returns 1-12
           { $eq: [{ $year: "$month" }, providedYear] },
+
         ],
       },
     });
@@ -134,7 +135,7 @@ const disapproveSalary = asyncHandler(async (req, res) => {
 
   const paySalary = asyncHandler(async (req, res) => {
     try {
-      const { empId, month, bonus, deduction } = req.body;
+      const { empId, month, bonus, deduction, leave } = req.body;
   
       const employee = await EmployeeModel.findById(empId);
       if (!employee) {
@@ -173,6 +174,7 @@ const disapproveSalary = asyncHandler(async (req, res) => {
       salaryRecord.isPaid = true;
       salaryRecord.bonus = bonus;
       salaryRecord.deduction = deduction;
+      salaryRecord.leave = leave;
       await salaryRecord.save();
   
       res.status(200).json({

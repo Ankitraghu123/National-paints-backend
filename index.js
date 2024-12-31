@@ -6,7 +6,6 @@ const { errorHandler, notFound } = require('./middlewares/errorHandler')
 const app = express()
 const cors = require('cors')
 
-
 const employeeRouter = require('./routes/EmployeeRoutes')
 const AttendanceRouter = require('./routes/AttendanceRoutes')
 const HolidayRouter = require('./routes/HolidayRoutes')
@@ -14,7 +13,7 @@ const ReceptionRouter = require('./routes/ReceptionRoutes')
 const HRRouter = require('./routes/HrRoutes')
 const AccountantRouter = require('./routes/AccountantRoutes')
 const AdminRouter = require('./routes/AdminRoutes')
-
+const TourRouter = require('./routes/TourRoutes')
 
 
 const bodyParser = require('body-parser')
@@ -34,7 +33,8 @@ app.use('/api/holiday',HolidayRouter)
 app.use('/api/reception',ReceptionRouter)
 app.use('/api/hr',HRRouter)
 app.use('/api/accountant',AccountantRouter)
-app.use('/api/admin',AdminRouter)
+app.use('/api/admin', AdminRouter)
+app.use('/api/tour',TourRouter)
 
 
 
