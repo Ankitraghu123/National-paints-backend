@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler');
 const EmployeeModel = require('../models/EmployeeModel');
 const AttendanceModel = require('../models/AttendanceModel');
 const UnPaidEmployeeModel = require('../models/UnPaidEmployeeModel');
+const SalaryModel = require('../models/SalaryModel');
 
 const addEmployee = asyncHandler(async (req, res) => {
     try {
@@ -302,6 +303,24 @@ const getEmployeeAttendance = async (req, res) => {
     }
   }
 
+  const deleteSalary = async (req,res) => {
+    try{
+        const { salaryId, employeeId } = req.params
+        
+        const delSalary = await SalaryModel.findByIdAndDelete(salaryId)
+
+        const emp = await EmployeeModel.findById(employeeId)
+
+        emp.salaryArray.pull(salaryId)
+
+        await emp.save()
+
+        res.status(200).json(delSalary)
+    }catch(err) {
+        console.error("Error fetching attendance records:", err);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
 
 module.exports = {
     addEmployee,
@@ -317,5 +336,6 @@ module.exports = {
     deleteEmployee,
     rejectEmployee,
     getAgainEmployee,
-    deletePermanently
+    deletePermanently,
+    deleteSalary
 };

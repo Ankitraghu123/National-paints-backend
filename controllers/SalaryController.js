@@ -136,7 +136,6 @@ const disapproveSalary = asyncHandler(async (req, res) => {
   const paySalary = asyncHandler(async (req, res) => {
     try {
       const { empId, month, bonus, deduction, leave } = req.body;
-  
       const employee = await EmployeeModel.findById(empId);
       if (!employee) {
         return res.status(404).json({ message: 'Employee not found' });

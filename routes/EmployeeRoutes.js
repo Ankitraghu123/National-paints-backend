@@ -1,5 +1,5 @@
 const express = require('express');
-const { addEmployee, getAllEmployee, getEmployeeAttendance, unpaidEmployees, unapprovedEmployees, approveEmployee, editEmployee, transferToPaidEmployee, getSingleEmployee, editSalary, deleteEmployee, rejectEmployee, getAgainEmployee, deletePermanently } = require('../controllers/EmployeeControllers');
+const { addEmployee, getAllEmployee, getEmployeeAttendance, unpaidEmployees, unapprovedEmployees, approveEmployee, editEmployee, transferToPaidEmployee, getSingleEmployee, editSalary, deleteEmployee, rejectEmployee, getAgainEmployee, deletePermanently, deleteSalary } = require('../controllers/EmployeeControllers');
 const { putSalary, paySalary, generateSalarySlip, payAdvance, disapproveSalary,unpayAdvance,unpaySalary } = require('../controllers/SalaryController');
 const { GiveLoan } = require('../controllers/LoanController');
 const { isHR } = require('../middlewares/authMiddlewares');
@@ -33,7 +33,9 @@ router.get('/:employeeId/:month', getEmployeeAttendance);
 
 router.post('/putSalary', putSalary);
 
-router.post('/pullSalary',disapproveSalary)
+router.post('/pullSalary', disapproveSalary)
+
+router.delete('/delete-salary/:salaryId/:employeeId',deleteSalary)
 
 router.post('/paySalary', paySalary);
 
